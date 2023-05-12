@@ -1,0 +1,19 @@
+[gd_scene load_steps=3 format=2]
+
+[ext_resource path="res://mods/cat_qol/sfx/bootleg.wav" type="AudioStream" id=1]
+[ext_resource path="res://mods/cat_qol/world/BootlegNoise.gd" type="Script" id=2]
+
+[node name="BootlegNoise" type="Spatial"]
+script = ExtResource( 2 )
+
+[node name="AudioStreamPlayer3D" type="AudioStreamPlayer3D" parent="."]
+stream = ExtResource( 1 )
+unit_size = 30.0
+max_distance = 100.0
+out_of_range_mode = 1
+bus = "World"
+
+[node name="Timer" type="Timer" parent="."]
+one_shot = true
+
+[connection signal="timeout" from="Timer" to="." method="_on_Timer_timeout"]

@@ -1,0 +1,10 @@
+[gd_scene load_steps=3 format=2]
+
+[ext_resource path="res://mods/cat_qol/world/ModConditionalLayer.gd" type="Script" id=1]
+[ext_resource path="res://world/maps/interiors/GramophoneInterior.tscn" type="PackedScene" id=2]
+
+[node name="GramophoneInterior" instance=ExtResource( 2 )]
+
+[node name="ExpoConditionalLayer" parent="." index="20"]
+script = ExtResource( 1 )
+flag_required = "setting_postbox_enabled"

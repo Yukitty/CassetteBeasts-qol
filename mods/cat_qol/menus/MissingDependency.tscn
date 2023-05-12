@@ -1,0 +1,114 @@
+[gd_scene load_steps=11 format=2]
+
+[ext_resource path="res://nodes/music/BackgroundMusic.gd" type="Script" id=1]
+[ext_resource path="res://ui/battle_theme.tres" type="Theme" id=2]
+[ext_resource path="res://menus/menu_bg_fade.shader" type="Shader" id=3]
+[ext_resource path="res://menus/BaseMenu.tscn" type="PackedScene" id=4]
+[ext_resource path="res://ui/fonts/regular/regular_50.tres" type="DynamicFont" id=5]
+[ext_resource path="res://mods/cat_qol/menus/MissingDependency.gd" type="Script" id=6]
+[ext_resource path="res://music/demo/cave.ogg" type="AudioStream" id=7]
+
+[sub_resource type="ShaderMaterial" id=10]
+resource_local_to_scene = true
+shader = ExtResource( 3 )
+shader_param/progress = 1.0
+shader_param/max_alpha = 1.0
+shader_param/base_color = Color( 0.1686, 0.1098, 0.2235, 1 )
+shader_param/hi_color = Color( 0.6706, 0.4588, 0.9098, 0.0625 )
+
+[sub_resource type="StyleBoxFlat" id=1]
+content_margin_left = 10.0
+content_margin_right = 75.0
+bg_color = Color( 0.670588, 0.458824, 0.909804, 1 )
+corner_radius_top_right = 70
+corner_detail = 1
+shadow_color = Color( 0, 0, 0, 1 )
+shadow_size = 1
+shadow_offset = Vector2( -20, 20 )
+
+[sub_resource type="StyleBoxFlat" id=9]
+bg_color = Color( 1, 1, 1, 1 )
+shadow_color = Color( 0, 0, 0, 1 )
+shadow_size = 1
+shadow_offset = Vector2( -20, 20 )
+
+[node name="MissingDependency" instance=ExtResource( 4 )]
+script = ExtResource( 6 )
+
+[node name="Blur" parent="." index="0"]
+material = SubResource( 10 )
+
+[node name="ErrorPanel" type="VBoxContainer" parent="Scroller/OverscanMarginContainer" index="0"]
+margin_left = 601.0
+margin_top = 300.0
+margin_right = 1319.0
+margin_bottom = 780.0
+rect_min_size = Vector2( 680, 480 )
+size_flags_horizontal = 6
+size_flags_vertical = 4
+theme = ExtResource( 2 )
+custom_constants/separation = 0
+
+[node name="HeadingPanel" type="PanelContainer" parent="Scroller/OverscanMarginContainer/ErrorPanel" index="0"]
+margin_right = 718.0
+margin_bottom = 70.0
+custom_styles/panel = SubResource( 1 )
+
+[node name="HBoxContainer" type="HBoxContainer" parent="Scroller/OverscanMarginContainer/ErrorPanel/HeadingPanel" index="0"]
+margin_left = 10.0
+margin_right = 643.0
+margin_bottom = 70.0
+custom_constants/separation = 10
+
+[node name="HeadingLabel" type="Label" parent="Scroller/OverscanMarginContainer/ErrorPanel/HeadingPanel/HBoxContainer" index="0"]
+margin_right = 633.0
+margin_bottom = 70.0
+size_flags_horizontal = 3
+custom_fonts/font = ExtResource( 5 )
+text = "ERROR_MISSING_DEPENDENCY_NAME"
+
+[node name="PanelContainer3" type="PanelContainer" parent="Scroller/OverscanMarginContainer/ErrorPanel" index="1"]
+margin_top = 70.0
+margin_right = 718.0
+margin_bottom = 135.0
+size_flags_horizontal = 3
+custom_styles/panel = SubResource( 9 )
+
+[node name="MarginContainer" type="MarginContainer" parent="Scroller/OverscanMarginContainer/ErrorPanel/PanelContainer3" index="0"]
+margin_right = 718.0
+margin_bottom = 65.0
+custom_constants/margin_right = 10
+custom_constants/margin_left = 10
+custom_constants/margin_bottom = 5
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Scroller/OverscanMarginContainer/ErrorPanel/PanelContainer3/MarginContainer" index="0"]
+margin_left = 10.0
+margin_right = 708.0
+margin_bottom = 60.0
+size_flags_horizontal = 3
+
+[node name="MessageLabel" type="Label" parent="Scroller/OverscanMarginContainer/ErrorPanel/PanelContainer3/MarginContainer/VBoxContainer" index="0"]
+margin_right = 698.0
+margin_bottom = 60.0
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+text = "ERROR_MISSING_DEPENDENCY_DESCRIPTION"
+autowrap = true
+
+[node name="Control" type="Control" parent="Scroller/OverscanMarginContainer/ErrorPanel" index="2"]
+margin_top = 135.0
+margin_right = 718.0
+margin_bottom = 422.0
+size_flags_vertical = 3
+
+[node name="QuitButton" type="Button" parent="Scroller/OverscanMarginContainer/ErrorPanel" index="3"]
+unique_name_in_owner = true
+margin_top = 422.0
+margin_right = 718.0
+margin_bottom = 480.0
+text = "UI_PAUSE_QUIT_BTN"
+
+[node name="BackgroundMusic" type="Node" parent="." index="3"]
+script = ExtResource( 1 )
+track = ExtResource( 7 )
+
+[connection signal="pressed" from="Scroller/OverscanMarginContainer/ErrorPanel/QuitButton" to="." method="_on_QuitButton_pressed"]
