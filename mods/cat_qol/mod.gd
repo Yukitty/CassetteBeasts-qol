@@ -62,9 +62,10 @@ enum TextMovement {
 
 # Settings
 var setting_sticker_sort_mode: int = 1
+var setting_campsite_fast_travel: bool = false setget _set_campsite_fast_travel
 var setting_rare_noise_enabled: bool = true
-var setting_postbox_enabled: bool = false
 var setting_bootleg_rarity: int = 1000
+var setting_postbox_enabled: bool = false
 var setting_text_movement: int = TextMovement.FULL
 var setting_dyslexic_font: bool = false setget _set_dyslexic_font
 
@@ -72,6 +73,7 @@ var setting_dyslexic_font: bool = false setget _set_dyslexic_font
 var bootleg_noise: Reference = preload("bootleg_noise.gd").new()
 var font_manager: Reference = preload("font_manager.gd").new()
 var bbcode_patches: Reference = preload("bbcode_patches.gd").new()
+var fast_travel: Reference = preload("fast_travel.gd").new()
 
 # Mod interop
 const MODUTILS: Dictionary = {
@@ -91,6 +93,11 @@ const MODUTILS: Dictionary = {
 			"disable_for_mods": [
 				"Inventory_Deluxe",
 			],
+		},
+		{
+			"property": "setting_campsite_fast_travel",
+			"type": "toggle",
+			"label": "UI_SETTINGS_CAT_QOL_CAMPSITE_FAST_TRAVEL",
 		},
 		{
 			"property": "setting_rare_noise_enabled",
@@ -203,3 +210,7 @@ func _set_dyslexic_font(enabled: bool) -> void:
 func _on_StatusBubbleRight_ready(status_bubble: Control) -> void:
 	var unobtained_icon: TextureRect = status_bubble.get_node("GridContainer/MarginContainer4/MarginContainer/Control/UnobtainedIcon")
 	unobtained_icon.texture = load("res://ui/battle/unobtained_icon_right.png")
+
+func _set_campsite_fast_travel(enabled: bool) -> void:
+	setting_campsite_fast_travel = enabled
+	fast_travel.setup_campsites(enabled and fast_travel.FastTravel.ALWAYS or fast_travel.FastTravel.DISABLED)
