@@ -6,32 +6,32 @@ const MOD_STRINGS := [
 
 const RESOURCES := [
 	{
-		"resource": preload("world/GramophoneInterior.tscn"),
+		"resource": "world/GramophoneInterior.tscn",
 		"resource_path": "res://world/maps/interiors/GramophoneInterior.tscn",
 	},
 	{
-		"resource": preload("battle/unobtained_icon_right.png"),
+		"resource": "battle/unobtained_icon_right.png",
 		"resource_path": "res://ui/battle/unobtained_icon_right.png",
 	},
 ]
 
 const CONDITIONAL_RESOURCES := [
 	{
-		"resource": preload("global/save_state/Inventory.gd"),
+		"resource": "global/save_state/Inventory.gd",
 		"resource_path": "res://global/save_state/Inventory.gd",
 		"disable_for_mods": [
 			"Inventory_Deluxe",
 		],
 	},
 	{
-		"resource": preload("battle/OrderMenu.gd"),
+		"resource": "battle/OrderMenu.gd",
 		"resource_path": "res://battle/ui/OrderMenu.gd",
 		"disable_for_mods": [
 			"slow_fleeing",
 		],
 	},
 	{
-		"resource": preload("menus/SpookyDialog.gd"),
+		"resource": "menus/SpookyDialog.gd",
 		"resource_path": "res://menus/spooky_dialog/SpookyDialog.gd",
 		"disable_for_mods": [
 			"dyslexic_font",
@@ -39,14 +39,14 @@ const CONDITIONAL_RESOURCES := [
 		],
 	},
 	{
-		"resource": preload("data/MonsterSpawnProfile.gd"),
+		"resource": "data/MonsterSpawnProfile.gd",
 		"resource_path": "res://data/spawn_config_scripts/MonsterSpawnProfile.gd",
 		"disable_for_mods": [
 			"cat_bootlegs",
 		],
 	},
 	{
-		"resource": preload("data/MonsterSpawnConfig.gd"),
+		"resource": "data/MonsterSpawnConfig.gd",
 		"resource_path": "res://data/spawn_config_scripts/MonsterSpawnConfig.gd",
 		"disable_for_mods": [
 			"cat_bootlegs",
@@ -156,10 +156,6 @@ const MODUTILS: Dictionary = {
 	],
 }
 
-func _init() -> void:
-	for def in RESOURCES:
-		def.resource.take_over_path(def.resource_path)
-
 func init_content() -> void:
 	var enable: bool
 
@@ -175,6 +171,10 @@ func init_content() -> void:
 	# init submodules
 	bootleg_noise.init_submodule()
 
+	# Add resources
+	for def in RESOURCES:
+		load(def.resource).take_over_path(def.resource_path)
+
 	# Add conditional resources
 	for def in CONDITIONAL_RESOURCES:
 		enable = true
@@ -183,7 +183,7 @@ func init_content() -> void:
 				enable = false
 				break
 		if enable:
-			def.resource.take_over_path(def.resource_path)
+			load(def.resource).take_over_path(def.resource_path)
 
 	# Remove conditional settings
 	for def in MODUTILS.settings:
