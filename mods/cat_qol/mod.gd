@@ -6,16 +6,9 @@ const MOD_STRINGS := [
 
 const RESOURCES := [
 	{
-		"resource": preload("world/GramophoneInterior.tscn"),
-		"resource_path": "res://world/maps/interiors/GramophoneInterior.tscn",
-	},
-	{
 		"resource": preload("battle/unobtained_icon_right.png"),
 		"resource_path": "res://ui/battle/unobtained_icon_right.png",
 	},
-]
-
-const CONDITIONAL_RESOURCES := [
 	{
 		"resource": preload("global/save_state/Inventory.gd"),
 		"resource_path": "res://global/save_state/Inventory.gd",
@@ -65,6 +58,7 @@ var setting_sticker_sort_mode: int = 1
 var setting_campsite_fast_travel: bool = false setget _set_campsite_fast_travel
 var setting_rare_noise_enabled: bool = true
 var setting_bootleg_rarity: int = 1000
+var setting_show_roamers: bool = false setget _set_show_roamers
 var setting_postbox_enabled: bool = false
 var setting_text_movement: int = TextMovement.FULL
 var setting_dyslexic_font: bool = false setget _set_dyslexic_font
@@ -125,6 +119,11 @@ const MODUTILS: Dictionary = {
 			],
 		},
 		{
+			"property": "setting_show_roamers",
+			"type": "toggle",
+			"label": "UI_SETTINGS_CAT_QOL_SHOW_ROAMERS",
+		},
+		{
 			"property": "setting_postbox_enabled",
 			"type": "toggle",
 			"label": "UI_SETTINGS_CAT_QOL_POSTBOX",
@@ -156,10 +155,6 @@ const MODUTILS: Dictionary = {
 	],
 }
 
-func _init() -> void:
-	for def in RESOURCES:
-		def.resource.take_over_path(def.resource_path)
-
 func init_content() -> void:
 	var enable: bool
 
@@ -176,12 +171,13 @@ func init_content() -> void:
 	bootleg_noise.init_submodule()
 
 	# Add conditional resources
-	for def in CONDITIONAL_RESOURCES:
+	for def in RESOURCES:
 		enable = true
-		for mod_id in def.disable_for_mods:
-			if DLC.has_mod(mod_id, 0):
-				enable = false
-				break
+		if "disable_for_mods" in def:
+			for mod_id in def.disable_for_mods:
+				if DLC.has_mod(mod_id, 0):
+					enable = false
+					break
 		if enable:
 			def.resource.take_over_path(def.resource_path)
 
@@ -196,16 +192,22 @@ func init_content() -> void:
 		if not enable:
 			MODUTILS.settings.erase(def)
 
-	# Add translation callback
-	DLC.mods_by_id.cat_modutils.trans_patch.add_translation_callback(bbcode_patches, "_on_translation")
-
-	# Add StatusBubbleRight callback
-	DLC.mods_by_id.cat_modutils.callbacks.connect_scene_ready("res://battle/ui/StatusBubbleRight.tscn", self, "_on_StatusBubbleRight_ready")
+	# Mod Utils callbacks
+	var modutils: Reference = DLC.mods_by_id.cat_modutils
+	modutils.trans_patch.add_translation_callback(bbcode_patches, "_on_translation")
+	modutils.callbacks.connect_scene_ready("res://world/maps/interiors/GramophoneInterior.tscn", self, "_on_GramophoneInterior_ready")
+	modutils.callbacks.connect_scene_ready("res://battle/ui/StatusBubbleRight.tscn", self, "_on_StatusBubbleRight_ready")
 
 func _set_dyslexic_font(enabled: bool) -> void:
 	setting_dyslexic_font = enabled
 	# The actual font change has to be deferred because vanilla menu stuff reverts it
 	DLC.get_tree().connect("idle_frame", font_manager, "change_font", [enabled], CONNECT_ONESHOT)
+
+func _on_GramophoneInterior_ready(scene: Spatial) -> void:
+	var conditional: BaseConditionalLayer = scene.get_node("ExpoConditionalLayer")
+	conditional.set_script(preload("world/ModConditionalLayer.gd"))
+	conditional.flag_required = "setting_postbox_enabled"
+	conditional._enter_tree()
 
 func _on_StatusBubbleRight_ready(status_bubble: Control) -> void:
 	var unobtained_icon: TextureRect = status_bubble.get_node("GridContainer/MarginContainer4/MarginContainer/Control/UnobtainedIcon")
@@ -214,3 +216,27 @@ func _on_StatusBubbleRight_ready(status_bubble: Control) -> void:
 func _set_campsite_fast_travel(enabled: bool) -> void:
 	setting_campsite_fast_travel = enabled
 	fast_travel.setup_campsites(enabled and fast_travel.FastTravel.ALWAYS or fast_travel.FastTravel.DISABLED)
+
+func _set_show_roamers(enabled: bool) -> void:
+	setting_show_roamers = enabled
+
+	var quest_list: Dictionary = {
+		"res://data/passive_quests/averevoir_spawn.tres":
+			"AverevoirSpawnQuest.tscn",
+		"res://data/passive_quests/glaistain_spawn.tres":
+			"GlaistainSpawnQuest.tscn",
+		"res://data/passive_quests/kunekos_return.tres":
+			"KunekosReturnQuest.tscn",
+		"res://data/passive_quests/miss_mimic_spawn.tres":
+			"MissMimicSpawnQuest.tscn",
+	}
+
+	var quest_root: String
+	if enabled:
+		quest_root = "res://mods/cat_qol/data/"
+	else:
+		quest_root = "res://data/passive_quests/"
+
+	for quest_meta in Datatables.load("res://data/passive_quests").table.values():
+		if quest_list.has(quest_meta.resource_path):
+			quest_meta.quest = load(quest_root + quest_list[quest_meta.resource_path])

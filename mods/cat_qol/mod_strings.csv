@@ -3,7 +3,7 @@ MOD_CAT_QOL_NAME,Combined Quality Patch
 ERROR_MISSING_DEPENDENCY_NAME,Error in loaded mods
 ERROR_MISSING_DEPENDENCY_DESCRIPTION,"Loaded mods require Mod Utils to function, which is not currently installed.\n\nCheck your mod dependencies carefully."
 UI_SETTINGS_CAT_QOL_RARE_NOISE,Rare overworld monster noise
-UI_SETTINGS_CAT_QOL_POSTBOX,Allow PostBox in Gramophone Café
+UI_SETTINGS_CAT_QOL_POSTBOX,Allow letterbox in Gramophone Café
 UI_SETTINGS_CAT_QOL_DYSLEXIC_FONT,Dyslexia-friendly font
 UI_SETTINGS_CAT_QOL_TEXT_MOVEMENT,Moving text intensity
 UI_SETTINGS_CAT_QOL_TEXT_MOVEMENT_FULL,Full
@@ -20,3 +20,9 @@ UI_SETTINGS_CAT_QOL_STICKER_SORT,Sticker sorting mode
 UI_SETTINGS_CAT_QOL_STICKER_SORT_DEFAULT,Default (Alphabetical)
 UI_SETTINGS_CAT_QOL_STICKER_SORT_ELEMENTS,Group elements
 UI_SETTINGS_CAT_QOL_CAMPSITE_FAST_TRAVEL,Allow Fast Travel to Campsites
+UI_SETTINGS_CAT_QOL_SHOW_ROAMERS,Spoil roaming monster signals
+PASSIVE_QUEST_AVEREVOIR_TITLE,Averevoir Signal
+PASSIVE_QUEST_GLAISTAIN_TITLE,Glaistain Signal
+PASSIVE_QUEST_KUNEKO_TITLE,Kuneko Signal
+PASSIVE_QUEST_MISS_MIMIC_TITLE,Fused Cache Signal
+PASSIVE_QUEST_MISS_MIMIC_FUSION_TITLE,Miss Mimic Signal
