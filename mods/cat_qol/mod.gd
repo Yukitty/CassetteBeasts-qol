@@ -58,6 +58,7 @@ var setting_sticker_sort_mode: int = 1
 var setting_campsite_fast_travel: bool = false setget _set_campsite_fast_travel
 var setting_rare_noise_enabled: bool = true
 var setting_bootleg_rarity: int = 1000
+var setting_show_roamers: bool = false setget _set_show_roamers
 var setting_postbox_enabled: bool = false
 var setting_text_movement: int = TextMovement.FULL
 var setting_dyslexic_font: bool = false setget _set_dyslexic_font
@@ -116,6 +117,11 @@ const MODUTILS: Dictionary = {
 			"disable_for_mods": [
 				"cat_bootlegs",
 			],
+		},
+		{
+			"property": "setting_show_roamers",
+			"type": "toggle",
+			"label": "UI_SETTINGS_CAT_QOL_SHOW_ROAMERS",
 		},
 		{
 			"property": "setting_postbox_enabled",
@@ -210,3 +216,27 @@ func _on_StatusBubbleRight_ready(status_bubble: Control) -> void:
 func _set_campsite_fast_travel(enabled: bool) -> void:
 	setting_campsite_fast_travel = enabled
 	fast_travel.setup_campsites(enabled and fast_travel.FastTravel.ALWAYS or fast_travel.FastTravel.DISABLED)
+
+func _set_show_roamers(enabled: bool) -> void:
+	setting_show_roamers = enabled
+
+	var quest_list: Dictionary = {
+		"res://data/passive_quests/averevoir_spawn.tres":
+			"AverevoirSpawnQuest.tscn",
+		"res://data/passive_quests/glaistain_spawn.tres":
+			"GlaistainSpawnQuest.tscn",
+		"res://data/passive_quests/kunekos_return.tres":
+			"KunekosReturnQuest.tscn",
+		"res://data/passive_quests/miss_mimic_spawn.tres":
+			"MissMimicSpawnQuest.tscn",
+	}
+
+	var quest_root: String
+	if enabled:
+		quest_root = "res://mods/cat_qol/data/"
+	else:
+		quest_root = "res://data/passive_quests/"
+
+	for quest_meta in Datatables.load("res://data/passive_quests").table.values():
+		if quest_list.has(quest_meta.resource_path):
+			quest_meta.quest = load(quest_root + quest_list[quest_meta.resource_path])
