@@ -17,9 +17,9 @@ Please see the [official Cassette Beasts wiki Mod User Guide](https://wiki.casse
 
 ## Legal notice
 
-This mod includes [OpenDyslexic](https://opendyslexic.org/), a free to use typeface available under the [SIL-OFL](../OFL.txt) license.
+This mod includes [OpenDyslexic](https://opendyslexic.org/), a free to use typeface available under the [SIL-OFL](/OFL.txt) license.
 
-All other original assets, scripts, and edits are released under [MIT license](../LICENSE.txt) where applicable.
+All other original assets, scripts, and edits are released under [MIT license](/LICENSE.txt) where applicable.
 
 [Cassette Beasts](https://www.cassettebeasts.com/) is developed by [Bytten Studio](https://bytten-studio.com/) and published by [Raw Fury](https://rawfury.com/).
 
