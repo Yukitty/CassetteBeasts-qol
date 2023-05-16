@@ -6,16 +6,9 @@ const MOD_STRINGS := [
 
 const RESOURCES := [
 	{
-		"resource": preload("world/GramophoneInterior.tscn"),
-		"resource_path": "res://world/maps/interiors/GramophoneInterior.tscn",
-	},
-	{
 		"resource": preload("battle/unobtained_icon_right.png"),
 		"resource_path": "res://ui/battle/unobtained_icon_right.png",
 	},
-]
-
-const CONDITIONAL_RESOURCES := [
 	{
 		"resource": preload("global/save_state/Inventory.gd"),
 		"resource_path": "res://global/save_state/Inventory.gd",
@@ -156,10 +149,6 @@ const MODUTILS: Dictionary = {
 	],
 }
 
-func _init() -> void:
-	for def in RESOURCES:
-		def.resource.take_over_path(def.resource_path)
-
 func init_content() -> void:
 	var enable: bool
 
@@ -176,12 +165,13 @@ func init_content() -> void:
 	bootleg_noise.init_submodule()
 
 	# Add conditional resources
-	for def in CONDITIONAL_RESOURCES:
+	for def in RESOURCES:
 		enable = true
-		for mod_id in def.disable_for_mods:
-			if DLC.has_mod(mod_id, 0):
-				enable = false
-				break
+		if "disable_for_mods" in def:
+			for mod_id in def.disable_for_mods:
+				if DLC.has_mod(mod_id, 0):
+					enable = false
+					break
 		if enable:
 			def.resource.take_over_path(def.resource_path)
 
@@ -196,16 +186,22 @@ func init_content() -> void:
 		if not enable:
 			MODUTILS.settings.erase(def)
 
-	# Add translation callback
-	DLC.mods_by_id.cat_modutils.trans_patch.add_translation_callback(bbcode_patches, "_on_translation")
-
-	# Add StatusBubbleRight callback
-	DLC.mods_by_id.cat_modutils.callbacks.connect_scene_ready("res://battle/ui/StatusBubbleRight.tscn", self, "_on_StatusBubbleRight_ready")
+	# Mod Utils callbacks
+	var modutils: Reference = DLC.mods_by_id.cat_modutils
+	modutils.trans_patch.add_translation_callback(bbcode_patches, "_on_translation")
+	modutils.callbacks.connect_scene_ready("res://world/maps/interiors/GramophoneInterior.tscn", self, "_on_GramophoneInterior_ready")
+	modutils.callbacks.connect_scene_ready("res://battle/ui/StatusBubbleRight.tscn", self, "_on_StatusBubbleRight_ready")
 
 func _set_dyslexic_font(enabled: bool) -> void:
 	setting_dyslexic_font = enabled
 	# The actual font change has to be deferred because vanilla menu stuff reverts it
 	DLC.get_tree().connect("idle_frame", font_manager, "change_font", [enabled], CONNECT_ONESHOT)
+
+func _on_GramophoneInterior_ready(scene: Spatial) -> void:
+	var conditional: BaseConditionalLayer = scene.get_node("ExpoConditionalLayer")
+	conditional.set_script(preload("world/ModConditionalLayer.gd"))
+	conditional.flag_required = "setting_postbox_enabled"
+	conditional._enter_tree()
 
 func _on_StatusBubbleRight_ready(status_bubble: Control) -> void:
 	var unobtained_icon: TextureRect = status_bubble.get_node("GridContainer/MarginContainer4/MarginContainer/Control/UnobtainedIcon")
