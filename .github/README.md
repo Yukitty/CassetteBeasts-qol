@@ -2,7 +2,7 @@
 
 ## ⚠️ This mod depends on Mod Utils ⚠️
 
-You must download and install [Mod Utils](https://github.com/Yukitty/CassetteBeasts-cat-modutils) to use this mod
+You must download and install [Mod Utils](https://github.com/Yukitty/CassetteBeasts-modutils) to use this mod
 
 ## How to download and install
 
