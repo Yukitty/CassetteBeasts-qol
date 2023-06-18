@@ -229,12 +229,14 @@ func init_content() -> void:
 		if move.resource_path in BATTLE_ANIMATIONS_BLACKLIST:
 			continue
 		move.set_meta("modutils_attack", {
+			"fade_lights_during_attack": move.fade_lights_during_attack,
 			"attack_animation": move.attack_animation,
 			"attack_vfx": move.attack_vfx.duplicate(),
 			"attack_duration": move.attack_duration,
 			"disable_melee_movement": move.disable_melee_movement,
 		})
 		if not setting_battle_animations:
+			move.fade_lights_during_attack = false
 			move.attack_animation = ""
 			move.attack_vfx.clear()
 			move.attack_duration = 0
@@ -248,11 +250,13 @@ func _set_battle_animations(enabled: bool) -> void:
 			move.attack_vfx.clear()
 			if enabled:
 				var default: Dictionary = move.get_meta("modutils_attack")
+				move.fade_lights_during_attack = default.fade_lights_during_attack
 				move.attack_animation = default.attack_animation
 				move.attack_vfx.append_array(default.attack_vfx)
 				move.attack_duration = default.attack_duration
 				move.disable_melee_movement = default.disable_melee_movement
 			else:
+				move.fade_lights_during_attack = false
 				move.attack_animation = ""
 				move.attack_duration = 0
 				move.disable_melee_movement = true
