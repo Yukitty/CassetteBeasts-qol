@@ -245,21 +245,39 @@ func init_content() -> void:
 
 func _set_battle_animations(enabled: bool) -> void:
 	setting_battle_animations = enabled
+	if not SceneManager.preloader.singleton_setup_complete:
+		return
+
+	# Update base battle moves
 	for move in BattleMoves.moves + BattleMoves.archangel_moves.values():
 		if move.has_meta("modutils_attack"):
-			move.attack_vfx.clear()
-			if enabled:
-				var default: Dictionary = move.get_meta("modutils_attack")
-				move.fade_lights_during_attack = default.fade_lights_during_attack
-				move.attack_animation = default.attack_animation
-				move.attack_vfx.append_array(default.attack_vfx)
-				move.attack_duration = default.attack_duration
-				move.disable_melee_movement = default.disable_melee_movement
-			else:
-				move.fade_lights_during_attack = false
-				move.attack_animation = ""
-				move.attack_duration = 0
-				move.disable_melee_movement = true
+			_update_battle_move_animation(move)
+
+	# Clear cached BattleMoves from equipped stickers
+	for character in SaveState.party.characters:
+		for tape in character.tapes:
+			for sticker in tape.stickers:
+				if sticker is StickerItem:
+					sticker.modified_move = null
+
+
+func _update_battle_move_animation(move: BattleMove) -> void:
+	# Disable animations
+	move.attack_vfx.clear()
+	if not setting_battle_animations:
+		move.fade_lights_during_attack = false
+		move.attack_animation = ""
+		move.attack_duration = 0
+		move.disable_melee_movement = true
+		return
+
+	# Restore animations
+	var default: Dictionary = move.get_meta("modutils_attack")
+	move.fade_lights_during_attack = default.fade_lights_during_attack
+	move.attack_animation = default.attack_animation
+	move.attack_vfx.append_array(default.attack_vfx)
+	move.attack_duration = default.attack_duration
+	move.disable_melee_movement = default.disable_melee_movement
 
 
 func _set_dyslexic_font(enabled: bool) -> void:
