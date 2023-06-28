@@ -324,6 +324,8 @@ func _set_show_roamers(enabled: bool) -> void:
 			"MissMimicSpawnQuest.tscn",
 		"res://data/passive_quests/miss_mimic_fusion.tres":
 			"MissMimicFusionQuest.tscn",
+		"res://data/passive_quests/picksie_spawn.tres":
+			"PicksieSpawnQuest.tscn",
 	}
 
 	var quest_root: String
