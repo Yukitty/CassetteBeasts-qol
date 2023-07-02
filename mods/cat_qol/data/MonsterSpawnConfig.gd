@@ -17,9 +17,9 @@ func _configure_world_mon(node: Node) -> Node:
 	var tape: TapeConfig = palette.get_node(palette.tape_path)
 	var c: CharacterConfig = tape.get_parent()
 
-	# Make the representative monster shiny or not using mod odds, instead of const odds.
+	# Make the representative monster shiny or not using mod setting odds, instead of const odds.
 	if c.character_kind == Character.CharacterKind.MONSTER and randf() < bootleg_chance:
-		tape.type_override = [_random_type()]
+		tape.type_override = [BattleSetupUtil.random_type(Random.new())]
 	else:
 		tape.type_override.clear()
 
