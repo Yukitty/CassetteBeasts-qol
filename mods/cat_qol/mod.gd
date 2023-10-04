@@ -19,13 +19,6 @@ const RESOURCES := [
 		],
 	},
 	{
-		"resource": "battle/OrderMenu.gd",
-		"resource_path": "res://battle/ui/OrderMenu.gd",
-		"disable_for_mods": [
-			"slow_fleeing",
-		],
-	},
-	{
 		"resource": "menus/SpookyDialog.gd",
 		"resource_path": "res://menus/spooky_dialog/SpookyDialog.gd",
 		"disable_for_mods": [
@@ -314,6 +307,10 @@ func _set_show_roamers(enabled: bool) -> void:
 	setting_show_roamers = enabled
 
 	var quest_list: Dictionary = {
+		"res://data/passive_quests/unstable_fusion.tres":
+			"UnstableFusionQuest.tscn",
+		"res://data/passive_quests/orb_fusion.tres":
+			"OrbFusionQuest.tscn",
 		"res://data/passive_quests/averevoir_spawn.tres":
 			"AverevoirSpawnQuest.tscn",
 		"res://data/passive_quests/glaistain_spawn.tres":
@@ -326,6 +323,8 @@ func _set_show_roamers(enabled: bool) -> void:
 			"MissMimicFusionQuest.tscn",
 		"res://data/passive_quests/picksie_spawn.tres":
 			"PicksieSpawnQuest.tscn",
+		"res://data/passive_quests/umbrahella_spawn.tres":
+			"UmbrahellaSpawnQuest.tscn",
 	}
 
 	var quest_root: String
