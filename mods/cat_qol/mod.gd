@@ -62,6 +62,7 @@ var setting_battle_animations: bool = true setget _set_battle_animations
 var setting_rare_noise_enabled: bool = true
 var setting_bootleg_rarity: int = 1000
 var setting_show_roamers: bool = false setget _set_show_roamers
+var setting_show_merchant: bool = false setget _set_show_merchant
 var setting_postbox_enabled: bool = false
 var setting_text_movement: int = TextMovement.FULL
 var setting_dyslexic_font: bool = false setget _set_dyslexic_font
@@ -133,6 +134,11 @@ const MODUTILS: Dictionary = {
 			"property": "setting_show_roamers",
 			"type": "toggle",
 			"label": "UI_SETTINGS_CAT_QOL_SHOW_ROAMERS",
+		},
+		{
+			"property": "setting_show_merchant",
+			"type": "toggle",
+			"label": "UI_SETTINGS_CAT_QOL_SHOW_TRAVELING_MERCHANT",
 		},
 		{
 			"property": "setting_postbox_enabled",
@@ -336,3 +342,15 @@ func _set_show_roamers(enabled: bool) -> void:
 	for quest_meta in Datatables.load("res://data/passive_quests").table.values():
 		if quest_list.has(quest_meta.resource_path):
 			quest_meta.quest = load(quest_root + quest_list[quest_meta.resource_path])
+
+func _set_show_merchant(enabled: bool) -> void:
+	setting_show_merchant = enabled
+
+	var quest_root: String
+	if enabled:
+		quest_root = "res://mods/cat_qol/data/"
+	else:
+		quest_root = "res://data/passive_quests/"
+
+	var quest_meta = load("res://data/passive_quests/traveling_merchant.tres")
+	quest_meta.quest = load(quest_root + "TravelingMerchantQuest.tscn")

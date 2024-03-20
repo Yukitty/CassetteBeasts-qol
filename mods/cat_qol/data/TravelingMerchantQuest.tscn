@@ -1,0 +1,10 @@
+[gd_scene load_steps=3 format=2]
+
+[ext_resource path="res://data/passive_quests/PassiveQuest.gd" type="Script" id=1]
+[ext_resource path="res://mods/cat_qol/icons/DiscountedMerchant.png" type="Texture" id=2]
+
+[node name="TravelingMerchantQuest" type="Node"]
+script = ExtResource( 1 )
+title = "PASSIVE_QUEST_TRAVELING_MERCHANT_TITLE"
+map_marker_icons = [ ExtResource( 2 ) ]
+spawn_scenes = [ "res://world/quest_scenes/passive/TravelingMerchant.tscn" ]
