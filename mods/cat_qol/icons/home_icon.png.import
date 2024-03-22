@@ -1,0 +1,35 @@
+[remap]
+
+importer="texture"
+type="StreamTexture"
+path="res://.import/home_icon.png-9af12da5c32fe132c05341be8a64cf30.stex"
+metadata={
+"vram_texture": false
+}
+
+[deps]
+
+source_file="res://mods/cat_qol/icons/home_icon.png"
+dest_files=[ "res://.import/home_icon.png-9af12da5c32fe132c05341be8a64cf30.stex" ]
+
+[params]
+
+compress/mode=0
+compress/lossy_quality=0.7
+compress/hdr_mode=0
+compress/bptc_ldr=0
+compress/normal_map=0
+flags/repeat=0
+flags/filter=false
+flags/mipmaps=false
+flags/anisotropic=false
+flags/srgb=0
+process/fix_alpha_border=true
+process/premult_alpha=false
+process/HDR_as_SRGB=false
+process/invert_color=false
+process/normal_map_invert_y=false
+stream=false
+size_limit=0
+detect_3d=false
+svg/scale=1.0

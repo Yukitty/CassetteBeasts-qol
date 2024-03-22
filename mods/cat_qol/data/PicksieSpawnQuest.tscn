@@ -1,8 +1,0 @@
-[gd_scene load_steps=3 format=2]
-
-[ext_resource path="res://data/passive_quests/PicksieSpawnQuest.tscn" type="PackedScene" id=1]
-[ext_resource path="res://mods/cat_qol/icons/picksie.png" type="Texture" id=2]
-
-[node name="PicksieSpawnQuest" instance=ExtResource( 1 )]
-title = "PASSIVE_QUEST_PICKSIE_TITLE"
-map_marker_icons = [ ExtResource( 2 ) ]
