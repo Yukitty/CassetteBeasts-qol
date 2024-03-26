@@ -48,6 +48,9 @@ const BATTLE_ANIMATIONS_BLACKLIST = [
 ]
 
 
+const META_ANIMSET = "modutils_animset"
+
+
 enum TextMovement {
 	FULL,
 	REDUCED,
@@ -217,23 +220,40 @@ func init_content() -> void:
 	assert(not SceneManager.preloader.singleton_setup_complete)
 	yield(SceneManager.preloader, "singleton_setup_completed")
 
-	# Set up BattleMoves
-	for move in BattleMoves.moves + BattleMoves.archangel_moves.values():
+	# Initialize battle move animations
+	var battle_moves = Datatables.load("res://data/battle_moves")
+	for move in battle_moves.table.values():
 		if move.resource_path in BATTLE_ANIMATIONS_BLACKLIST:
 			continue
-		move.set_meta("modutils_attack", {
+		move.set_meta(META_ANIMSET, {
 			"fade_lights_during_attack": move.fade_lights_during_attack,
 			"attack_animation": move.attack_animation,
-			"attack_vfx": move.attack_vfx.duplicate(),
+			"attack_vfx": move.attack_vfx,
 			"attack_duration": move.attack_duration,
 			"disable_melee_movement": move.disable_melee_movement,
 		})
 		if not setting_battle_animations:
 			move.fade_lights_during_attack = false
 			move.attack_animation = ""
-			move.attack_vfx.clear()
+			move.attack_vfx = []
 			move.attack_duration = 0
 			move.disable_melee_movement = true
+
+	# Initialize status effects animations
+	var status_effects = Datatables.load("res://data/status_effects")
+	for se in status_effects.table.values():
+		var animset: Dictionary = {
+			"vfx_on_add": se.vfx_on_add,
+			"vfx_on_remove": se.vfx_on_remove,
+		}
+		if "hit_vfx" in se:
+			animset.hit_vfx = se.hit_vfx
+		se.set_meta(META_ANIMSET, animset)
+		if not setting_battle_animations:
+			se.vfx_on_add = []
+			se.vfx_on_remove = []
+			if "hit_vfx" in se:
+				se.hit_vfx = []
 
 
 func _set_battle_animations(enabled: bool) -> void:
@@ -242,9 +262,16 @@ func _set_battle_animations(enabled: bool) -> void:
 		return
 
 	# Update base battle moves
-	for move in BattleMoves.moves + BattleMoves.archangel_moves.values():
-		if move.has_meta("modutils_attack"):
+	var battle_moves = Datatables.load("res://data/battle_moves")
+	for move in battle_moves.table.values():
+		if move.has_meta(META_ANIMSET):
 			_update_battle_move_animation(move)
+
+	# Update status effects
+	var status_effects = Datatables.load("res://data/status_effects")
+	for se in status_effects.table.values():
+		if se.has_meta(META_ANIMSET):
+			_update_status_effect_animation(se)
 
 	# Clear cached BattleMoves from equipped stickers
 	for character in SaveState.party.characters:
@@ -256,21 +283,38 @@ func _set_battle_animations(enabled: bool) -> void:
 
 func _update_battle_move_animation(move: BattleMove) -> void:
 	# Disable animations
-	move.attack_vfx.clear()
 	if not setting_battle_animations:
 		move.fade_lights_during_attack = false
 		move.attack_animation = ""
+		move.attack_vfx = []
 		move.attack_duration = 0
 		move.disable_melee_movement = true
 		return
 
 	# Restore animations
-	var default: Dictionary = move.get_meta("modutils_attack")
+	var default: Dictionary = move.get_meta(META_ANIMSET)
 	move.fade_lights_during_attack = default.fade_lights_during_attack
 	move.attack_animation = default.attack_animation
-	move.attack_vfx.append_array(default.attack_vfx)
+	move.attack_vfx = default.attack_vfx
 	move.attack_duration = default.attack_duration
 	move.disable_melee_movement = default.disable_melee_movement
+
+
+func _update_status_effect_animation(se: StatusEffect) -> void:
+	# Disable animations
+	if not setting_battle_animations:
+		se.vfx_on_add = []
+		se.vfx_on_remove = []
+		if "hit_vfx" in se:
+			se.hit_vfx = []
+		return
+
+	# Restore animations
+	var default: Dictionary = se.get_meta(META_ANIMSET)
+	se.vfx_on_add = default.vfx_on_add
+	se.vfx_on_remove = default.vfx_on_remove
+	if "hit_vfx" in se:
+		se.hit_vfx = default.hit_vfx
 
 
 func _set_dyslexic_font(enabled: bool) -> void:
@@ -307,6 +351,8 @@ func _set_show_roamers(enabled: bool) -> void:
 	setting_show_roamers = enabled
 
 	var quest_list: Dictionary = {
+		"res://data/passive_quests/swarm.tres":
+			"SwarmQuest.tscn",
 		"res://data/passive_quests/unstable_fusion.tres":
 			"UnstableFusionQuest.tscn",
 		"res://data/passive_quests/orb_fusion.tres":
