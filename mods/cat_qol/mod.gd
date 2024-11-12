@@ -12,14 +12,6 @@ const RESOURCES := [
 		"resource_path": "res://ui/battle/unobtained_icon_right.png",
 	},
 	{
-		"resource": "world/QuestMarkerExt.gd",
-		"resource_path": "res://world/core/QuestMarker.gd",
-	},
-	{
-		"resource": "world/RumorMarkerExt.gd",
-		"resource_path": "res://world/core/RumorMarker.gd",
-	},
-	{
 		"resource": "global/save_state/Inventory.gd",
 		"resource_path": "res://global/save_state/Inventory.gd",
 		"disable_for_mods": [
@@ -57,12 +49,20 @@ const BATTLE_ANIMATIONS_BLACKLIST = [
 
 
 const META_ANIMSET = "catqol_animset"
+const META_QUEST = "catqol_quest"
 
 
 enum TextMovement {
 	FULL,
 	REDUCED,
 	DISABLED,
+}
+
+
+enum Secrets {
+	DISABLED,
+	RUMORS,
+	ALL,
 }
 
 
@@ -73,19 +73,11 @@ var setting_battle_animations: bool = true setget _set_battle_animations
 var setting_rare_noise_enabled: bool = true
 var setting_bootleg_rarity: int = 1000
 var setting_show_roamers: bool = false setget _set_show_roamers
-var setting_show_merchant: bool = false setget _set_show_merchant
-var setting_upgrade_iconmaps: bool = true setget _set_color_in_map
+var setting_show_secrets: int = Secrets.DISABLED setget _set_show_secrets
 var setting_postbox_enabled: bool = false
 var setting_text_movement: int = TextMovement.FULL
 var setting_dyslexic_font: bool = false setget _set_dyslexic_font
 
-var map_displays: Array = []
-var latest_traveling_merchant_quest: Node
-
-var roamers_quests: Array = []
-var editable_mapicons: Array = []
-var passive_mapicons: Array = []
-var campsite_overworld: Array = []
 
 # Dependencies
 var lmodutils: Reference
@@ -96,7 +88,7 @@ var bootleg_noise: Reference = preload("bootleg_noise.gd").new()
 var font_manager: Reference = preload("font_manager.gd").new()
 var bbcode_patches: Reference = preload("bbcode_patches.gd").new()
 var fast_travel: Reference = preload("fast_travel.gd").new()
-var color_mapicons: Reference = preload("color_mapicons.gd").new()
+
 
 # Mod interop
 const MODUTILS: Dictionary = {
@@ -159,14 +151,19 @@ const MODUTILS: Dictionary = {
 			"label": "UI_SETTINGS_CAT_QOL_SHOW_ROAMERS",
 		},
 		{
-			"property": "setting_show_merchant",
-			"type": "toggle",
-			"label": "UI_SETTINGS_CAT_QOL_SHOW_TRAVELING_MERCHANT",
-		},
-		{
-			"property": "setting_upgrade_iconmaps",
-			"type": "toggle",
-			"label": "UI_SETTINGS_CAT_QOL_SHOW_COLORED_MAPICONS",
+			"property": "setting_show_secrets",
+			"type": "options",
+			"label": "UI_SETTINGS_CAT_QOL_SHOW_SECRETS",
+			"values": [
+				Secrets.DISABLED,
+				Secrets.RUMORS,
+				Secrets.ALL,
+			],
+			"value_labels": [
+				"UI_SETTINGS_CAT_QOL_SECRETS_DISABLED",
+				"UI_SETTINGS_CAT_QOL_SECRETS_RUMORS",
+				"UI_SETTINGS_CAT_QOL_SECRETS_ALL",
+			],
 		},
 		{
 			"property": "setting_postbox_enabled",
@@ -246,32 +243,13 @@ func init_content() -> void:
 	# Mod Utils callbacks
 	lmodutils.trans_patch.add_translation_callback(bbcode_patches, "_on_translation")
 	lmodutils.callbacks.connect_scene_ready("res://battle/ui/StatusBubbleRight.tscn", self, "_on_StatusBubbleRight_ready")
-	# traveling merchant
-	lmodutils.callbacks.connect_scene_ready("res://data/passive_quests/TravelingMerchantQuest.tscn", self, "_on_TravelingMerchantQuest_ready")
-	# each of the special spawns
-	lmodutils.callbacks.connect_scene_ready("res://data/passive_quests/UnstableFusionQuest.tscn", self, "_on_UnstableFusionQuest_ready")
-	lmodutils.callbacks.connect_scene_ready("res://data/passive_quests/UmbrahellaSpawnQuest.tscn", self, "_on_UmbrahellaSpawnQuest_ready")
-	lmodutils.callbacks.connect_scene_ready("res://data/passive_quests/PicksieSpawnQuest.tscn", self, "_on_PicksieSpawnQuest_ready")
-	lmodutils.callbacks.connect_scene_ready("res://data/passive_quests/OrbFusionQuest.tscn", self, "_on_OrbFusionQuest_ready")
-	lmodutils.callbacks.connect_scene_ready("res://data/passive_quests/MissMimicSpawnQuest.tscn", self, "_on_MissMimicSpawnQuest_ready")
-	lmodutils.callbacks.connect_scene_ready("res://data/passive_quests/MissMimicFusionQuest.tscn", self, "_on_MissMimicFusionQuest_ready")
-	lmodutils.callbacks.connect_scene_ready("res://data/passive_quests/KunekosReturnQuest.tscn", self, "_on_KunekosReturnQuest_ready")
-	lmodutils.callbacks.connect_scene_ready("res://data/passive_quests/GlaistainSpawnQuest.tscn", self, "_on_GlaistainSpawnQuest_ready")
-	lmodutils.callbacks.connect_scene_ready("res://data/passive_quests/AverevoirSpawnQuest.tscn", self, "_on_AverevoirSpawnQuest_ready")
-	# the maps
-	lmodutils.callbacks.connect_scene_ready("res://nodes/map_display/MapDisplay.tscn", self, "_on_MapDisplay_ready")
-	# quest marks
-	lmodutils.callbacks.connect_scene_ready("res://nodes/map_display/QuestPosMarker.tscn", self, "_on_QuestMarkerDisplay_ready")
-	lmodutils.callbacks.connect_scene_ready("res://world/ui/PersistentStatusElement_Quest.tscn", self, "_on_QuestMarkerDisplay_ready")
-	# passive quest mark
-	lmodutils.callbacks.connect_scene_ready("res://data/passive_quests/OfflineNetPlayerGiftQuest.tscn", self, "_on_PassiveQuestMarkerDisplay_ready")
-	lmodutils.callbacks.connect_scene_ready("res://data/passive_quests/OfflineNetPlayerRematchQuest.tscn", self, "_on_PassiveQuestMarkerDisplay_ready")
-	# campsites (overworld icon)
-	lmodutils.callbacks.connect_scene_ready("res://world/core/Interaction.tscn", self, "_on_CampsiteOverworldMarkerDisplay_ready")
 
 	# Init post preload
 	assert(not SceneManager.preloader.singleton_setup_complete)
 	yield(SceneManager.preloader, "singleton_setup_completed")
+
+	# Catch quest initialization for map markers
+	SaveState.quests.connect("quest_started", self, "_on_quest_started")
 
 	# Initialize battle move animations
 	var battle_moves = Datatables.load("res://data/battle_moves")
@@ -392,7 +370,7 @@ func _on_GramophoneInterior_ready() -> void:
 
 func _on_StatusBubbleRight_ready(status_bubble: Control) -> void:
 	var unobtained_icon: TextureRect = status_bubble.get_node("GridContainer/MarginContainer4/MarginContainer/Control/UnobtainedIcon")
-	unobtained_icon.texture = load("res://ui/battle/unobtained_icon_right.png")
+	unobtained_icon.texture = load("res://ui/battle/unobtained_icon_right.png") # Update icon cached by scene (do not use preload)
 
 
 func _set_campsite_fast_travel(enabled: bool) -> void:
@@ -400,261 +378,93 @@ func _set_campsite_fast_travel(enabled: bool) -> void:
 	fast_travel.setup_campsites(enabled and fast_travel.FastTravel.ALWAYS or fast_travel.FastTravel.DISABLED)
 
 
-######################
-# settings listeners #
-######################
-func _set_color_in_map(enabled: bool) -> void:
-	setting_upgrade_iconmaps = enabled
-
-	color_mapicons.setup_mapicons(enabled)
-
-	for mapicon in editable_mapicons:
-		_on_QuestMarkerDisplay_ready(mapicon)
-
-	for mapicon in passive_mapicons:
-		_on_PassiveQuestMarkerDisplay_ready(mapicon)
-
-	for mapicon in campsite_overworld:
-		_on_CampsiteOverworldMarkerDisplay_ready(mapicon)
-
-	_update_map()
-
-
 func _set_show_roamers(enabled: bool) -> void:
 	setting_show_roamers = enabled
-
-	for quest in roamers_quests:
-		_set_RoamerQuest_map_icon(quest)
-
-	_update_map()
+	for quest in SaveState.quests.get_quests_of_kind(Quest.QuestKind.PASSIVE):
+		_update_quest_map_icon(quest)
 
 
-func _set_show_merchant(enabled: bool) -> void:
-	setting_show_merchant = enabled
-
-	if latest_traveling_merchant_quest:
-		_set_TravelingMerchantQuest_map_icon(latest_traveling_merchant_quest)
-		_update_map()
+func _set_show_secrets(value: int) -> void:
+	setting_show_secrets = value
+	for quest in SaveState.quests.get_quests_of_kind(Quest.QuestKind.PASSIVE):
+		_update_quest_map_icon(quest)
 
 
-####################
-# callback methods #
-####################
-func _on_CampsiteOverworldMarkerDisplay_ready(scene: Node) -> void:
-	if not scene.icon_override: return
-
-	var original = preload ( "res://ui/icons/map_markers/campsite_icon.png" )
-	var alternative = preload ( "res://mods/cat_qol/icons/campsite_icon.png" )
-
-	if scene.icon_override.resource_path.ends_with("campsite_icon.png"):
-		if setting_upgrade_iconmaps:
-			scene.icon_override = alternative
-		else:
-			scene.icon_override = original
-
-		if not campsite_overworld.has(scene):
-			campsite_overworld.push_back(scene)
-
-			# currently, we have 13 campsite icons in game:
-			# - 1 on the pier (DLC)
-			# - 1 on the cafè
-			# - 11 on the main map
-			# we should not go beyond that too easy, but future proofing on 20
-			var n_icons = campsite_overworld.size()
-			if n_icons > 40:
-				campsite_overworld = campsite_overworld.slice(21, n_icons-1)
-
-
-func _on_PassiveQuestMarkerDisplay_ready(scene: Node) -> void:
-	var marker = null
-	if setting_upgrade_iconmaps:
-		marker = preload( "res://mods/cat_qol/icons/passive_quest_icon.png" )
-	else:
-		marker = preload( "res://ui/icons/map_markers/passive_quest_icon.png" )
-
-	scene.map_marker_icons = [ marker ]
-
-	# as the user could ignore these for a while, I would prefer to track them
-	# separately
-	if not passive_mapicons.has(scene):
-		passive_mapicons.push_back(scene)
-
-	# what is the max amount of passive quests marks at the map?
-	# I would suspect something around 4
-	# but better being conservative here
-	var n_icons = passive_mapicons.size()
-	if n_icons > 20:
-		passive_mapicons = passive_mapicons.slice(10, n_icons-1)
+func _on_quest_started(quest: Quest) -> void:
+	match quest.filename:
+		"res://data/passive_quests/SwarmQuest.tscn":
+			_init_spoiler_quest(quest, "PASSIVE_QUEST_SWARM_TITLE", "swarm", setting_show_roamers)
+		"res://data/passive_quests/UnstableFusionQuest.tscn":
+			_init_spoiler_quest(quest, "PASSIVE_QUEST_UNSTABLE_FUSION_TITLE", "anathema", setting_show_roamers)
+		"res://data/passive_quests/OrbFusionQuest.tscn":
+			_init_spoiler_quest(quest, "PASSIVE_QUEST_ORB_FUSION_TITLE", "orb", setting_show_roamers)
+		"res://data/passive_quests/GlaistainSpawnQuest.tscn":
+			_init_spoiler_quest(quest, "PASSIVE_QUEST_GLAISTAIN_TITLE", "glaistain", setting_show_roamers)
+		"res://data/passive_quests/AverevoirSpawnQuest.tscn":
+			_init_spoiler_quest(quest, "PASSIVE_QUEST_AVEREVOIR_TITLE", "averevoir", setting_show_roamers)
+		"res://data/passive_quests/KunekosReturnQuest.tscn":
+			_init_spoiler_quest(quest, "PASSIVE_QUEST_KUNEKO_TITLE", "kuneko", setting_show_roamers)
+		"res://data/passive_quests/MissMimicSpawnQuest.tscn":
+			_init_spoiler_quest(quest, "PASSIVE_QUEST_MISS_MIMIC_TITLE", "miss_mimic", setting_show_roamers)
+		"res://data/passive_quests/MissMimicFusionQuest.tscn":
+			_init_spoiler_quest(quest, "PASSIVE_QUEST_MISS_MIMIC_FUSION_TITLE", "miss_mimic", setting_show_roamers)
+		"res://data/passive_quests/PicksieSpawnQuest.tscn":
+			_init_spoiler_quest(quest, "PASSIVE_QUEST_PICKSIE_TITLE", "picksie", setting_show_roamers)
+		"res://data/passive_quests/UmbrahellaSpawnQuest.tscn":
+			_init_spoiler_quest(quest, "PASSIVE_QUEST_UMBRAHELLA_TITLE", "umbrahella", setting_show_roamers)
+		"res://data/passive_quests/TravelingMerchantQuest.tscn":
+			_init_spoiler_quest(quest, "RUMOR_PASSIVE_QUEST_TRAVELING_MERCHANT_TITLE", "traveling_merchant", setting_show_secrets != Secrets.DISABLED)
+		"res://data/passive_quests/BlackShuckQuest.tscn":
+			_init_spoiler_quest(quest, "PASSIVE_QUEST_UNKNOWN_TITLE", "black_shuck", setting_show_secrets == Secrets.ALL)
 
 
-func _on_QuestMarkerDisplay_ready(scene: Node) -> void:
-	var marker = null
-	if setting_upgrade_iconmaps:
-		marker = preload( "res://mods/cat_qol/icons/quest_icon.png" )
-	else:
-		marker = preload( "res://ui/icons/map_markers/quest_icon.png" )
-
-	if scene:
-		if scene.name == "QuestPosMarker":
-			scene.get_child(0).texture = marker
-		elif scene.name == "PersistentStatusElement_Quest":
-			scene.icon.texture = marker
-
-		if not editable_mapicons.has(scene):
-			editable_mapicons.push_back(scene)
-
-	# what is the max amount of quest marks at the map?
-	# I would suspect something around 12
-	# not at the same time:
-	# - up to 12 accompaning fusions
-	# - up to 5 vampires
-	# - up to 12 captains
-	# - anything else?
-	# being very conservative here
-	var n_icons = editable_mapicons.size()
-	if n_icons > 50:
-		editable_mapicons = editable_mapicons.slice(26, n_icons-1)
+func _init_spoiler_quest(quest: Quest, title: String, icon: String, reveal: bool) -> void:
+	var meta: Dictionary = {
+		"title": quest.title,
+		"map_marker": quest.map_marker_icons,
+		"spoiler_title": title,
+		"spoiler_icon": "res://mods/cat_qol/icons/" + icon + ".png",
+		"revealed": reveal,
+	}
+	quest.set_meta(META_QUEST, meta)
+	if reveal:
+		quest.title = meta.spoiler_title
+		quest.map_marker_icons = [ load(meta.spoiler_icon) ]
 
 
-func _on_TravelingMerchantQuest_ready(scene: Node) -> void:
-	_set_TravelingMerchantQuest_map_icon(scene)
-	_update_map()
-
-	# Store the quest so that if the player decides to change the setting we can
-	# update the map icon accordingly
-	latest_traveling_merchant_quest = scene
-
-
-func _on_MapDisplay_ready(scene: Node) -> void:
-	# Clear out any built up old MapDisplays to avoid memory leaks
-	var freed_map_displays = []
-	for map_display in map_displays:
-		if not is_instance_valid(map_display) or map_display.is_queued_for_deletion():
-			freed_map_displays.push_back(map_display)
-
-	for map_display in freed_map_displays:
-		map_displays.erase(map_display)
-
-	# Add the new MapDisplay to the list
-	map_displays.push_back(scene)
-
-
-######################################
-# updating mapicons helper functions #
-######################################
-func _update_map() -> void:
-	for map_display in map_displays:
-		if is_instance_valid(map_display) and ! map_display.is_queued_for_deletion():
-			map_display.quest_markers_dirty = true
-			map_display.refresh_map()
-
-
-func _set_TravelingMerchantQuest_map_icon(scene: Node) -> void:
-	var traveling_merchant_quest = scene
-
-	if setting_show_merchant:
-		# Set the quest title and map icon
-		traveling_merchant_quest.title = "PASSIVE_QUEST_TRAVELING_MERCHANT_TITLE"
-		traveling_merchant_quest.map_marker_icons = [
-			preload("res://mods/cat_qol/icons/DiscountedMerchant.png")
-		]
-	else:
-		# Remove the quest title and map icon
-		traveling_merchant_quest.title = ""
-		traveling_merchant_quest.map_marker_icons = []
-
-
-func _set_RoamerQuest_map_icon(scene: Node) -> void:
-	var roamer_quest = scene
-	#sprint("loading new mapicon: %s" % roamer_quest)
-	_on_UnstableFusionQuest_ready(roamer_quest)
-	_on_UmbrahellaSpawnQuest_ready(roamer_quest)
-	_on_PicksieSpawnQuest_ready(roamer_quest)
-	_on_GlaistainSpawnQuest_ready(roamer_quest)
-	_on_OrbFusionQuest_ready(roamer_quest)
-	_on_MissMimicSpawnQuest_ready(roamer_quest)
-	_on_MissMimicFusionQuest_ready(roamer_quest)
-	_on_KunekosReturnQuest_ready(roamer_quest)
-	_on_AverevoirSpawnQuest_ready(roamer_quest)
-
-
-func _on_UnstableFusionQuest_ready(scene: Node) -> void:
-	_on_RoamerSpawnQuest_ready("UnstableFusion.tscn", scene,
-	"PASSIVE_QUEST_UNSTABLE_FUSION_TITLE", "miniboss.png",
-	"PASSIVE_QUEST_UNSTABLE_FUSION_TITLE", "anathema.png")
-
-
-func _on_UmbrahellaSpawnQuest_ready(scene: Node) -> void:
-	_on_RoamerSpawnQuest_ready("UmbrahellaSpawn.tscn", scene,
-	"PASSIVE_QUEST_UNKNOWN_TITLE", "miniboss.png",
-	"PASSIVE_QUEST_UMBRAHELLA_TITLE", "umbrahella.png")
-
-
-func _on_PicksieSpawnQuest_ready(scene: Node) -> void:
-	_on_RoamerSpawnQuest_ready("PicksieSpawn.tscn", scene,
-	"PASSIVE_QUEST_UNKNOWN_TITLE", "miniboss.png",
-	"PASSIVE_QUEST_PICKSIE_TITLE", "picksie.png")
-
-
-func _on_GlaistainSpawnQuest_ready(scene: Node) -> void:
-	_on_RoamerSpawnQuest_ready("GlaistainSpawn.tscn", scene,
-	"PASSIVE_QUEST_UNKNOWN_TITLE", "miniboss.png",
-	"PASSIVE_QUEST_GLAISTAIN_TITLE", "glaistain.png")
-
-
-func _on_OrbFusionQuest_ready(scene: Node) -> void:
-	_on_RoamerSpawnQuest_ready("OrbFusion.tscn", scene,
-	"PASSIVE_QUEST_ORB_FUSION_TITLE", "miniboss.png",
-	"PASSIVE_QUEST_ORB_FUSION_TITLE", "orb.png")
-
-
-func _on_MissMimicSpawnQuest_ready(scene: Node) -> void:
-	_on_RoamerSpawnQuest_ready("MissMimicSpawn.tscn", scene,
-	"PASSIVE_QUEST_UNKNOWN_TITLE", "miniboss.png",
-	"PASSIVE_QUEST_MISS_MIMIC_TITLE", "miss_mimic.png")
-
-
-func _on_MissMimicFusionQuest_ready(scene: Node) -> void:
-	_on_RoamerSpawnQuest_ready("MissMimicFusion.tscn", scene,
-	"PASSIVE_QUEST_ROGUE_FUSION_TITLE", "miniboss.png",
-	"PASSIVE_QUEST_MISS_MIMIC_FUSION_TITLE", "miss_mimic.png")
-
-
-func _on_KunekosReturnQuest_ready(scene: Node) -> void:
-	_on_RoamerSpawnQuest_ready("KunekosReturn.tscn", scene,
-	"PASSIVE_QUEST_UNKNOWN_TITLE", "miniboss.png",
-	"PASSIVE_QUEST_KUNEKO_TITLE", "kuneko.png")
-
-
-func _on_AverevoirSpawnQuest_ready(scene: Node) -> void:
-	_on_RoamerSpawnQuest_ready("AverevoirSpawn.tscn", scene,
-	"PASSIVE_QUEST_UNKNOWN_TITLE", "miniboss.png",
-	"PASSIVE_QUEST_AVEREVOIR_TITLE", "averevoir.png")
-
-
-func _on_RoamerSpawnQuest_ready(name: String, scene: Node,
-		title: String, mapicon: String,
-		alt_title: String, alt_mapicon: String) -> void:
-	if not scene.spawn_scenes[0].ends_with(name):
+func _update_quest_map_icon(quest: Quest) -> void:
+	if not quest.has_meta(META_QUEST):
 		return
 
-	_set_title_and_mapicon_to_roamer_scene(scene,
-		title, mapicon, alt_title, alt_mapicon)
+	var meta: Dictionary = quest.get_meta(META_QUEST)
+	var reveal: bool = false
+	match quest.filename:
+		"res://data/passive_quests/SwarmQuest.tscn",\
+		"res://data/passive_quests/UnstableFusionQuest.tscn",\
+		"res://data/passive_quests/OrbFusionQuest.tscn",\
+		"res://data/passive_quests/GlaistainSpawnQuest.tscn",\
+		"res://data/passive_quests/AverevoirSpawnQuest.tscn",\
+		"res://data/passive_quests/KunekosReturnQuest.tscn",\
+		"res://data/passive_quests/MissMimicSpawnQuest.tscn",\
+		"res://data/passive_quests/MissMimicFusionQuest.tscn",\
+		"res://data/passive_quests/PicksieSpawnQuest.tscn",\
+		"res://data/passive_quests/UmbrahellaSpawnQuest.tscn":
+			reveal = setting_show_roamers
+		"res://data/passive_quests/TravelingMerchantQuest.tscn":
+			reveal = setting_show_secrets != Secrets.DISABLED
+		"res://data/passive_quests/BlackShuckQuest.tscn":
+			reveal = setting_show_secrets == Secrets.ALL
 
+	# Nothing to update.
+	if reveal == meta.revealed:
+		return
 
-func _set_title_and_mapicon_to_roamer_scene(scene: Node, title: String, mapicon: String,
-	alt_title: String, alt_mapicon: String) -> void:
-	if setting_show_roamers:
-		scene.title = alt_title
-		scene.map_marker_icons = [ load("res://mods/cat_qol/icons/" + alt_mapicon) ]
+	# Show/hide spoiler title and icon.
+	if reveal:
+		quest.title = meta.spoiler_title
+		quest.map_marker_icons = [ load(meta.spoiler_icon) ]
 	else:
-		scene.title = title
-		scene.map_marker_icons = [ load("res://ui/icons/map_markers/" + mapicon) ]
-
-	if not roamers_quests.has(scene):
-		roamers_quests.push_back(scene)
-
-	# there is a maximum of 12 spawns at the map, including black shuk and the merchant,
-	# so this limit is more than enough (to avoid memory leaks)
-	if roamers_quests.size() > 12:
-		roamers_quests.pop_front()
+		quest.title = meta.title
+		quest.map_marker_icons = meta.map_marker
+	meta.revealed = reveal
+	quest.emit_signal("map_markers_changed", quest)

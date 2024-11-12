@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/quest_icon_world.png-6ff600ea06b231acf4add30412ad61d7.stex"
+path="res://.import/black_shuck.png-02f80f854569c4e027a01b079453ebd4.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://mods/cat_qol/icons/quest_icon_world.png"
-dest_files=[ "res://.import/quest_icon_world.png-6ff600ea06b231acf4add30412ad61d7.stex" ]
+source_file="res://mods/cat_qol/icons/black_shuck.png"
+dest_files=[ "res://.import/black_shuck.png-02f80f854569c4e027a01b079453ebd4.stex" ]
 
 [params]
 
@@ -20,7 +20,7 @@ compress/hdr_mode=0
 compress/bptc_ldr=0
 compress/normal_map=0
 flags/repeat=0
-flags/filter=false
+flags/filter=true
 flags/mipmaps=false
 flags/anisotropic=false
 flags/srgb=0

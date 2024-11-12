@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/home_icon2.png-1b87ee86c934a810700ac038eace43bc.stex"
+path="res://.import/traveling_merchant.png-cc69f67e55c6b97bad512b4121a63836.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://mods/cat_qol/icons/home_icon2.png"
-dest_files=[ "res://.import/home_icon2.png-1b87ee86c934a810700ac038eace43bc.stex" ]
+source_file="res://mods/cat_qol/icons/traveling_merchant.png"
+dest_files=[ "res://.import/traveling_merchant.png-cc69f67e55c6b97bad512b4121a63836.stex" ]
 
 [params]
 
@@ -20,7 +20,7 @@ compress/hdr_mode=0
 compress/bptc_ldr=0
 compress/normal_map=0
 flags/repeat=0
-flags/filter=false
+flags/filter=true
 flags/mipmaps=false
 flags/anisotropic=false
 flags/srgb=0
