@@ -48,7 +48,7 @@ const BATTLE_ANIMATIONS_BLACKLIST = [
 ]
 
 
-const META_ANIMSET = "modutils_animset"
+const META_ANIMSET = "catqol_animset"
 
 
 enum TextMovement {
@@ -68,6 +68,10 @@ var setting_show_roamers: bool = false setget _set_show_roamers
 var setting_postbox_enabled: bool = false
 var setting_text_movement: int = TextMovement.FULL
 var setting_dyslexic_font: bool = false setget _set_dyslexic_font
+
+
+# Dependencies
+var lmodutils: Reference
 
 
 # Submodules
@@ -177,10 +181,11 @@ func init_content() -> void:
 	for translation in MOD_STRINGS:
 		TranslationServer.add_translation(translation)
 
-	# Show MissingDependencies screen if cat_modutils isn't loaded
-	if not DLC.has_mod("cat_modutils", 0):
-		DLC.get_tree().connect("idle_frame", SceneManager, "change_scene", ["res://mods/cat_qol/menus/MissingDependency.tscn"], CONNECT_ONESHOT)
-		return
+	# Polyfill modutils if needed.
+	if DLC.has_mod("cat_modutils", 0):
+		lmodutils = DLC.mods_by_id.cat_modutils
+	else: # Start polyfill if cat_modutils isn't loaded.
+		lmodutils = load("res://mods/cat_qol/polyfill_modutils.gd").new()
 
 	# init submodules
 	bootleg_noise.init_submodule()
@@ -212,9 +217,8 @@ func init_content() -> void:
 	SceneManager.connect("scene_changed", self, "_on_SceneManager_scene_changed")
 
 	# Mod Utils callbacks
-	var modutils: Reference = DLC.mods_by_id.cat_modutils
-	modutils.trans_patch.add_translation_callback(bbcode_patches, "_on_translation")
-	modutils.callbacks.connect_scene_ready("res://battle/ui/StatusBubbleRight.tscn", self, "_on_StatusBubbleRight_ready")
+	lmodutils.trans_patch.add_translation_callback(bbcode_patches, "_on_translation")
+	lmodutils.callbacks.connect_scene_ready("res://battle/ui/StatusBubbleRight.tscn", self, "_on_StatusBubbleRight_ready")
 
 	# Init post preload
 	assert(not SceneManager.preloader.singleton_setup_complete)

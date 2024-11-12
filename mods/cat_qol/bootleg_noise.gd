@@ -3,7 +3,7 @@ extends Reference
 const BootlegNoise = preload("world/BootlegNoise.tscn")
 
 func init_submodule() -> void:
-	DLC.mods_by_id.cat_modutils.callbacks.connect_class_ready(EncounterConfig, self, "_on_EncounterConfig_ready")
+	DLC.mods_by_id.cat_qol.lmodutils.callbacks.connect_class_ready(EncounterConfig, self, "_on_EncounterConfig_ready")
 
 func _on_EncounterConfig_ready(encounter: EncounterConfig) -> void:
 	if not DLC.mods_by_id.cat_qol.setting_rare_noise_enabled:
