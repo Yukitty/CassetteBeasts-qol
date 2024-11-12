@@ -1,8 +1,0 @@
-[gd_scene load_steps=3 format=2]
-
-[ext_resource path="res://mods/cat_qol/icons/kuneko.png" type="Texture" id=1]
-[ext_resource path="res://data/passive_quests/KunekosReturnQuest.tscn" type="PackedScene" id=2]
-
-[node name="KunekosReturnQuest" instance=ExtResource( 2 )]
-title = "PASSIVE_QUEST_KUNEKO_TITLE"
-map_marker_icons = [ ExtResource( 1 ) ]
