@@ -26,20 +26,6 @@ const RESOURCES := [
 			"dyslexic_font_all",
 		],
 	},
-	{
-		"resource": "data/MonsterSpawnProfile.gd",
-		"resource_path": "res://data/spawn_config_scripts/MonsterSpawnProfile.gd",
-		"disable_for_mods": [
-			"cat_bootlegs",
-		],
-	},
-	{
-		"resource": "data/MonsterSpawnConfig.gd",
-		"resource_path": "res://data/spawn_config_scripts/MonsterSpawnConfig.gd",
-		"disable_for_mods": [
-			"cat_bootlegs",
-		],
-	},
 ]
 
 
@@ -130,16 +116,18 @@ const MODUTILS: Dictionary = {
 			"type": "options",
 			"label": "UI_SETTINGS_CAT_QOL_BOOTLEG_RARITY",
 			"values": [
-				1000,
-				750,
-				500,
-				250,
+				1000, # 1:1000
+				750, # 1:750
+				500, # 1:500
+				250, # 1:250
+#				-100, # 100:1
 			],
 			"value_labels": [
 				"UI_SETTINGS_CAT_QOL_BOOTLEG_RARITY_DEFAULT",
 				"UI_SETTINGS_CAT_QOL_BOOTLEG_RARITY_RARE",
 				"UI_SETTINGS_CAT_QOL_BOOTLEG_RARITY_UNCOMMON",
 				"UI_SETTINGS_CAT_QOL_BOOTLEG_RARITY_COMMON",
+				"UI_SETTINGS_CAT_QOL_BOOTLEG_RARITY_DUMB",
 			],
 			"disable_for_mods": [
 				"cat_bootlegs",
@@ -211,9 +199,6 @@ func init_content() -> void:
 	else: # Start polyfill if cat_modutils isn't loaded.
 		lmodutils = load("res://mods/cat_qol/polyfill_modutils.gd").new()
 
-	# init submodules
-	bootleg_noise.init_submodule()
-
 	# Add conditional resources
 	for def in RESOURCES:
 		enable = true
@@ -243,6 +228,7 @@ func init_content() -> void:
 	# Mod Utils callbacks
 	lmodutils.trans_patch.add_translation_callback(bbcode_patches, "_on_translation")
 	lmodutils.callbacks.connect_scene_ready("res://battle/ui/StatusBubbleRight.tscn", self, "_on_StatusBubbleRight_ready")
+	lmodutils.callbacks.connect_class_ready(EncounterConfig, self, "_on_EncounterConfig_ready")
 
 	# Init post preload
 	assert(not SceneManager.preloader.singleton_setup_complete)
@@ -373,9 +359,75 @@ func _on_StatusBubbleRight_ready(status_bubble: Control) -> void:
 	unobtained_icon.texture = load("res://ui/battle/unobtained_icon_right.png") # Update icon cached by scene (do not use preload)
 
 
+func _on_EncounterConfig_ready(encounter: EncounterConfig) -> void:
+	# No edit on default setting
+	if setting_bootleg_rarity == 1000:
+		return
+
+	# Get our NPC
+	var world_monster: Node = encounter.get_parent()
+	if not world_monster or not world_monster is NPC:
+		return
+
+	# Get spawn container (eg. ConditionalLayer)
+	var container: Node = world_monster.get_parent()
+	if not container:
+		return
+
+	# Find the spawner that made us, as a sibling
+	var spawner: Spawner
+	for sibling in container.get_children():
+		if sibling is Spawner:
+			for spawn in sibling.current_spawns:
+				if spawn == world_monster:
+					spawner = sibling as Spawner
+					break
+			if spawner:
+				break
+	if not spawner:
+		return
+
+	# All set!
+	_on_Monster_spawned(spawner, world_monster, encounter)
+
+
+func _on_Monster_spawned(spawner: Spawner, world_monster: NPC, encounter: EncounterConfig) -> void:
+	if not spawner.spawn_profile or not spawner.spawn_profile.habitat_endless:
+		return
+
+	# Custom bootleg chance setting
+	var bootleg_chance: float
+	if setting_bootleg_rarity < 0:
+		bootleg_chance = 1.0 + (1.0 / setting_bootleg_rarity)
+	else:
+		bootleg_chance = 1.0 / setting_bootleg_rarity
+
+	# Re-roll bootleg chance on all encounter monsters.
+	var tape: TapeConfig
+	for c in encounter.get_children():
+		tape = null
+		if c is CharacterConfig and c.character_kind == Character.CharacterKind.MONSTER:
+			for n in c.get_children():
+				if n is TapeConfig:
+					tape = n
+					break
+			if not tape:
+				continue
+			if randf() < bootleg_chance:
+				tape.type_override = [BattleSetupUtil.random_type(Random.new())]
+			else:
+				tape.type_override.clear()
+
+	var monster_palette_path: NodePath = "MonsterPalette"
+	if world_monster.has_node(monster_palette_path):
+		var palette: MonsterPalette = world_monster.get_node(monster_palette_path)
+		palette.update_palette()
+
+
+
 func _set_campsite_fast_travel(enabled: bool) -> void:
 	setting_campsite_fast_travel = enabled
-	fast_travel.setup_campsites(enabled and fast_travel.FastTravel.ALWAYS or fast_travel.FastTravel.DISABLED)
+	fast_travel.setup_campsites(enabled)
 
 
 func _set_show_roamers(enabled: bool) -> void:
