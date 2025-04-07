@@ -415,8 +415,8 @@ func _on_Monster_spawned(spawner: Spawner, world_monster: NPC, encounter: Encoun
 				continue
 			if randf() < bootleg_chance:
 				tape.type_override = [BattleSetupUtil.random_type(Random.new())]
-			else:
-				tape.type_override.clear()
+#			else:
+#				tape.type_override.clear()
 
 	var monster_palette_path: NodePath = "MonsterPalette"
 	if world_monster.has_node(monster_palette_path):
@@ -464,8 +464,10 @@ func _on_quest_started(quest: Quest) -> void:
 			_init_spoiler_quest(quest, "PASSIVE_QUEST_PICKSIE_TITLE", "picksie", setting_show_roamers)
 		"res://data/passive_quests/UmbrahellaSpawnQuest.tscn":
 			_init_spoiler_quest(quest, "PASSIVE_QUEST_UMBRAHELLA_TITLE", "umbrahella", setting_show_roamers)
+		"res://data/passive_quests/MinosteamSpawnQuest.tscn":
+			_init_spoiler_quest(quest, "PASSIVE_QUEST_MINOSTEAM_TITLE", "minosteam", setting_show_roamers)
 		"res://data/passive_quests/TravelingMerchantQuest.tscn":
-			_init_spoiler_quest(quest, "RUMOR_PASSIVE_QUEST_TRAVELING_MERCHANT_TITLE", "traveling_merchant", setting_show_secrets != Secrets.DISABLED)
+			_init_spoiler_quest(quest, "TRAVELING_MERCHANT_NAME", "traveling_merchant", setting_show_secrets != Secrets.DISABLED)
 		"res://data/passive_quests/BlackShuckQuest.tscn":
 			_init_spoiler_quest(quest, "PASSIVE_QUEST_UNKNOWN_TITLE", "black_shuck", setting_show_secrets == Secrets.ALL)
 
@@ -500,7 +502,8 @@ func _update_quest_map_icon(quest: Quest) -> void:
 		"res://data/passive_quests/MissMimicSpawnQuest.tscn",\
 		"res://data/passive_quests/MissMimicFusionQuest.tscn",\
 		"res://data/passive_quests/PicksieSpawnQuest.tscn",\
-		"res://data/passive_quests/UmbrahellaSpawnQuest.tscn":
+		"res://data/passive_quests/UmbrahellaSpawnQuest.tscn",\
+		"res://data/passive_quests/MinosteamSpawnQuest.tscn":
 			reveal = setting_show_roamers
 		"res://data/passive_quests/TravelingMerchantQuest.tscn":
 			reveal = setting_show_secrets != Secrets.DISABLED
