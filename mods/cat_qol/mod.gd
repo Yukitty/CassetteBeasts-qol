@@ -26,6 +26,10 @@ const RESOURCES := [
 			"dyslexic_font_all",
 		],
 	},
+	{
+		"resource": "menus/FileMenu.gd",
+		"resource_path": "res://menus/title/FileMenu.gd",
+	},
 ]
 
 
@@ -53,6 +57,7 @@ enum Secrets {
 
 
 # Settings
+var setting_sort_save_files: bool = true
 var setting_sticker_sort_mode: int = 1
 var setting_campsite_fast_travel: bool = true setget _set_campsite_fast_travel
 var setting_battle_animations: bool = true setget _set_battle_animations
@@ -80,6 +85,11 @@ var fast_travel: Reference = preload("fast_travel.gd").new()
 const MODUTILS: Dictionary = {
 	"updates": "https://gist.githubusercontent.com/Yukitty/f113b1e2c11faad763a47ebc0a867643/raw/updates.json",
 	"settings": [
+		{
+			"property": "setting_sort_save_files",
+			"type": "toggle",
+			"label": "UI_SETTINGS_CAT_QOL_FILE_SORT",
+		},
 		{
 			"property": "setting_sticker_sort_mode",
 			"type": "options",

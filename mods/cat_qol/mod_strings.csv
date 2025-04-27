@@ -34,3 +34,4 @@ UI_SETTINGS_CAT_QOL_SHOW_SECRETS,Show secret events on map
 UI_SETTINGS_CAT_QOL_SECRETS_DISABLED,Disabled
 UI_SETTINGS_CAT_QOL_SECRETS_RUMORS,Rumor events only
 UI_SETTINGS_CAT_QOL_SECRETS_ALL,Spoil super secrets
+UI_SETTINGS_CAT_QOL_FILE_SORT,Sort files by most recently saved
