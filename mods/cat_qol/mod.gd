@@ -1,11 +1,6 @@
 extends ContentInfo
 
 
-const MOD_STRINGS := [
-	preload("mod_strings.en.translation"),
-]
-
-
 const RESOURCES := [
 	{
 		"resource": "battle/unobtained_icon_right.png",
@@ -29,6 +24,11 @@ const RESOURCES := [
 	{
 		"resource": "menus/FileMenu.gd",
 		"resource_path": "res://menus/title/FileMenu.gd",
+	},
+	{
+		"resource": "global/MonsterForms.gd",
+		"resource_path": "res://global/MonsterForms.gd",
+		"global": MonsterForms,
 	},
 ]
 
@@ -199,10 +199,6 @@ const MODUTILS: Dictionary = {
 func init_content() -> void:
 	var enable: bool
 
-	# Add translation strings
-	for translation in MOD_STRINGS:
-		TranslationServer.add_translation(translation)
-
 	# Polyfill modutils if needed.
 	if DLC.has_mod("cat_modutils", 0):
 		lmodutils = DLC.mods_by_id.cat_modutils
@@ -220,6 +216,8 @@ func init_content() -> void:
 		if enable:
 			def.resource = load("res://mods/cat_qol/" + def.resource)
 			def.resource.take_over_path(def.resource_path)
+			if "global" in def: # Replace script in autoload Node
+				swap_script(def.global, def.resource)
 
 	# Remove conditional settings
 	for def in MODUTILS.settings:
@@ -281,6 +279,17 @@ func init_content() -> void:
 			se.vfx_on_remove = []
 			if "hit_vfx" in se:
 				se.hit_vfx = []
+
+
+func swap_script(node: Node, script: GDScript) -> void:
+	var exports: Dictionary = {}
+	for property in node.get_script().get_property_list():
+		if not "usage" in property or property.usage & PROPERTY_USAGE_STORAGE:
+			exports[property.name] = node.get(property.name)
+	node.set_script(script)
+	for prop_name in exports.keys():
+		if prop_name in node:
+			node.set(prop_name, exports[prop_name])
 
 
 func _set_battle_animations(enabled: bool) -> void:
