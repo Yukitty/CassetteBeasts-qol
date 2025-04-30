@@ -112,10 +112,10 @@ func _cat_qol_check_file_states() -> void:
 
 
 func _cat_qol_sort_files() -> void:
-	file_buttons = file_button_container.get_children()
-	for node in file_buttons:
-		if not node is FileButton:
-			file_buttons.erase(node)
+	file_buttons = []
+	for node in file_button_container.get_children():
+		if node is FileButton:
+			file_buttons.append(node)
 	file_buttons.sort_custom(self, "_cat_qol_sort_file_buttons_by_saved_datetime")
 	var i: int = 0
 	for file_button in file_buttons:
